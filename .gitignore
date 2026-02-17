@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+functions/node_modules/
+functions/lib/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+
+# Environment
+.env
+.env.local
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# NOTE: functions/bin/yt-dlp IS committed to the repo intentionally.
+# It is the Linux x86_64 static binary needed by Cloud Functions at runtime.

@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Each user can only access their own tracks
+    match /users/{userId}/tracks/{trackId} {
+
+      // Read: only the owning user
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Create: blocked from client — Cloud Functions (Admin SDK) create documents
+      allow create: if false;
+
+      // Update: client may only change name and ordinal
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['name', 'ordinal']);
+
+      // Delete: client can delete their own tracks
+      // (Storage cleanup handled by the deleteTrackFn Cloud Function)
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Each user can manage their own playlists
+    match /users/{userId}/playlists/{playlistId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      allow create: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.trackIds is list;
+
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['name', 'trackIds', 'updatedAt']);
+
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

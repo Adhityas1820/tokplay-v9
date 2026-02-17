@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TokPlay">
+<title>TokPlay v9</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0c;--surface:#141418;--surface2:#1c1c22;--surface3:#24242c;
+  --accent:#fe2c55;--accent2:#25f4ee;--accent-glow:rgba(254,44,85,.25);
+  --text:#f0f0f2;--text2:#8e8e9a;--text3:#55555f;
+  --radius:16px;
+  --safe-top:env(safe-area-inset-top,20px);
+  --safe-bottom:env(safe-area-inset-bottom,20px);
+}
+html,body{height:100%;height:100dvh;width:100%;overflow:hidden;position:fixed;inset:0;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-user-select:none;user-select:none}
+#app{height:100%;height:100dvh;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:0;position:relative;overflow:hidden}
+
+/* ── Auth Gate ── */
+#authGate{
+  position:fixed;inset:0;background:var(--bg);z-index:500;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  padding:40px;
+}
+#authGate .logo-big{font-family:'Outfit',sans-serif;font-weight:800;font-size:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#authGate .tagline{font-size:15px;color:var(--text2);text-align:center;line-height:1.5}
+.google-btn{
+  display:flex;align-items:center;gap:12px;padding:14px 28px;border-radius:14px;
+  background:white;color:#1f1f1f;font-family:inherit;font-size:15px;font-weight:600;
+  border:none;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.google-btn:active{transform:scale(.97)}
+.google-btn svg{width:20px;height:20px;flex-shrink:0}
+
+/* ── Ambient ── */
+.ambient{position:fixed;inset:0;width:100%;height:100%;background:radial-gradient(ellipse at 50% 30%,var(--accent-glow) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,var(--accent-glow) 0%,transparent 50%);pointer-events:none;z-index:0;opacity:0;transition:opacity 1.2s ease}
+.ambient.playing{opacity:1}
+
+/* ── Header ── */
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 8px;position:relative;z-index:10;flex-shrink:0}
+.logo{font-family:'Outfit',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
+.header-actions{display:flex;gap:8px}
+.icon-btn{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--surface3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s;position:relative}
+.icon-btn:active{transform:scale(.92);background:var(--surface2)}
+.icon-btn svg{width:20px;height:20px}
+
+/* ── User chip ── */
+.user-chip{display:flex;align-items:center;gap:6px;padding:6px 10px 6px 6px;border-radius:20px;background:var(--surface);border:1px solid var(--surface3)}
+.user-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover}
+.user-avatar-fallback{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0}
+.user-name{font-size:11px;font-weight:600;color:var(--text2);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── URL input bar ── */
+.url-bar{display:flex;gap:8px;padding:0 20px 10px;position:relative;z-index:10;flex-shrink:0}
+.url-input{
+  flex:1;padding:13px 16px;border-radius:14px;border:1px solid var(--surface3);
+  background:var(--surface);color:var(--text);font-family:inherit;font-size:14px;
+  outline:none;transition:border-color .2s;-webkit-user-select:text;user-select:text;
+}
+.url-input::placeholder{color:var(--text3)}
+.url-input:focus{border-color:rgba(254,44,85,.4)}
+.add-btn{
+  padding:13px 18px;border-radius:14px;border:none;
+  background:linear-gradient(135deg,var(--accent),#ff4470);color:white;
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.add-btn:active{transform:scale(.97)}
+.add-btn:disabled{opacity:.5;cursor:not-allowed}
+.upload-btn{
+  padding:13px;border-radius:14px;border:1px solid var(--surface3);
+  background:var(--surface);color:var(--text2);cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.upload-btn:active{transform:scale(.97)}
+.upload-btn:hover{border-color:rgba(254,44,85,.4);color:var(--text)}
+
+/* ── Toast ── */
+.toast{position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%) translateY(-20px);background:var(--surface2);border:1px solid var(--surface3);color:var(--text);font-size:13px;font-weight:500;padding:10px 20px;border-radius:12px;z-index:300;opacity:0;transition:all .3s ease;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:rgba(37,244,238,.3)}
+.toast.error{border-color:rgba(254,44,85,.3)}
+
+/* ── Processing ── */
+.processing-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.processing-overlay.show{display:flex}
+.spinner{width:44px;height:44px;border:3px solid var(--surface3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.processing-text{font-size:15px;font-weight:600;color:var(--text)}
+.processing-detail{font-size:12px;color:var(--text3);text-align:center;max-width:260px}
+
+/* ── Playlist ── */
+.playlist-section{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;z-index:10}
+.playlist-header{display:flex;align-items:center;justify-content:space-between;padding:4px 20px 8px;flex-shrink:0}
+.playlist-title{font-family:'Outfit',sans-serif;font-weight:600;font-size:16px;color:var(--text2)}
+.track-count{font-size:12px;color:var(--text3);background:var(--surface);padding:4px 10px;border-radius:20px}
+.clear-btn{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 10px;font-family:inherit}
+
+.tracks-list{flex:1;overflow-y:auto;padding:0 20px 12px;-webkit-overflow-scrolling:touch}
+.tracks-list::-webkit-scrollbar{display:none}
+
+.track-item{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;background:var(--surface);border-radius:14px;border:1px solid transparent;transition:all .25s;cursor:pointer}
+.track-item.active{border-color:var(--accent);background:linear-gradient(135deg,rgba(254,44,85,.08),rgba(37,244,238,.04));box-shadow:0 4px 24px rgba(254,44,85,.12)}
+.track-item:active{transform:scale(.98)}
+.track-item.processing-track{opacity:.6;cursor:default}
+.track-num{width:28px;height:28px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--text3);flex-shrink:0}
+.track-item.active .track-num{background:var(--accent);color:white}
+.track-info{flex:1;min-width:0}
+.track-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-name-input{background:none;border:none;color:var(--text);font-size:14px;font-weight:500;font-family:inherit;width:100%;outline:none;padding:0;-webkit-user-select:text;user-select:text}
+.track-duration{font-size:11px;color:var(--text3);margin-top:2px}
+.track-actions{display:flex;gap:4px;flex-shrink:0}
+.track-btn{width:32px;height:32px;border-radius:8px;background:var(--surface2);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .2s}
+.track-btn:active{transform:scale(.88)}
+.track-btn.delete:active{color:var(--accent)}
+.track-btn svg{width:14px;height:14px}
+.processing-badge{display:inline-block;font-size:9px;color:var(--accent2);background:rgba(37,244,238,.1);padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.error-badge{display:inline-block;font-size:9px;color:var(--accent);background:rgba(254,44,85,.1);padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-state svg{width:48px;height:48px;margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:14px;line-height:1.5}
+.empty-state .hint{font-size:11px;margin-top:8px;opacity:.7}
+
+/* ── Player ── */
+.now-playing{flex-shrink:0;position:relative;z-index:10;padding:0 20px calc(8px + var(--safe-bottom))}
+.player-card{background:var(--surface);border-radius:20px;border:1px solid var(--surface3);padding:16px 18px 14px;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.progress-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.progress-time{font-size:10px;color:var(--text3);min-width:32px;font-variant-numeric:tabular-nums}
+.progress-bar{flex:1;height:4px;background:var(--surface3);border-radius:2px;cursor:pointer;position:relative;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;width:0%;transition:width .3s linear}
+.now-info{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.now-art{width:44px;height:44px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.now-art svg{width:20px;height:20px;color:white}
+.now-art .disc{position:absolute;inset:0;border:3px solid rgba(255,255,255,.15);border-radius:12px}
+.now-art.spinning .disc{animation:spin 3s linear infinite}
+.now-meta{flex:1;min-width:0}
+.now-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now-status{font-size:11px;color:var(--text3);margin-top:1px}
+.controls{display:flex;align-items:center;justify-content:center;gap:12px}
+.ctrl-btn{width:44px;height:44px;border-radius:50%;background:var(--surface2);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);transition:all .2s}
+.ctrl-btn:active{transform:scale(.88)}
+.ctrl-btn svg{width:20px;height:20px}
+.ctrl-btn.play{width:56px;height:56px;background:linear-gradient(135deg,var(--accent),#ff4470);box-shadow:0 4px 20px var(--accent-glow)}
+.ctrl-btn.play svg{width:24px;height:24px;color:white}
+.ctrl-btn.small{width:38px;height:38px;font-size:11px;font-weight:700;font-family:'Outfit',sans-serif}
+.ctrl-btn.small.active{background:var(--accent);color:white}
+.ctrl-btn.small svg{width:16px;height:16px}
+.speed-label{font-size:11px;font-weight:700;color:var(--text)}
+.ctrl-btn.small.active .speed-label{color:white}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{width:100%;max-width:420px;background:var(--surface);border-radius:24px 24px 0 0;padding:20px 20px calc(20px + var(--safe-bottom));max-height:80vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--surface3);border-radius:2px;margin:0 auto 16px}
+.modal h3{font-family:'Outfit',sans-serif;font-size:18px;margin-bottom:16px}
+.modal-btn{width:100%;padding:14px;border-radius:14px;border:none;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;transition:all .2s}
+.modal-btn:active{transform:scale(.97)}
+.modal-btn.danger{background:rgba(254,44,85,.15);color:var(--accent)}
+.modal-btn.cancel{background:var(--surface2);color:var(--text2)}
+
+/* ── Help modal ── */
+.help-section{margin-bottom:20px}
+.help-section h4{font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.help-section h4 .step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.help-section p{font-size:13px;color:var(--text2);line-height:1.6;padding-left:30px}
+.help-divider{height:1px;background:var(--surface3);margin:16px 0}
+.help-tip{font-size:12px;color:var(--accent2);background:rgba(37,244,238,.08);padding:10px 14px;border-radius:10px;line-height:1.5}
+.help-tip strong{color:var(--accent2)}
+
+/* ── Playlist Selector ── */
+.playlist-selector{display:flex;gap:8px;padding:0 20px 8px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:relative;z-index:10}
+.playlist-selector::-webkit-scrollbar{display:none}
+.playlist-pill{flex-shrink:0;padding:8px 16px;border-radius:20px;border:1px solid var(--surface3);background:var(--surface);color:var(--text2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.playlist-pill:active{transform:scale(.95)}
+.playlist-pill.active{background:var(--accent);color:white;border-color:var(--accent)}
+.playlist-pill.add-pill{background:var(--surface2);color:var(--accent);font-size:18px;font-weight:700;padding:8px 14px;line-height:1}
+.playlist-pill.add-pill:active{background:var(--surface3)}
+.playlist-check-item{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:6px;background:var(--surface2);border-radius:12px;cursor:pointer;font-size:14px;color:var(--text);transition:background .2s}
+.playlist-check-item:active{background:var(--surface3)}
+.playlist-check-item input[type="checkbox"]{width:20px;height:20px;accent-color:var(--accent);flex-shrink:0;cursor:pointer}
+
+/* ── Light mode ── */
+body.light{
+  --bg:#f5f5fa;--surface:#ffffff;--surface2:#eeeef3;--surface3:#dcdce4;
+  --accent:#4a6cf7;--accent2:#00b8a9;--accent-glow:rgba(74,108,247,.15);
+  --text:#1a1a2e;--text2:#5a5a72;--text3:#9e9eb2;
+}
+body.light .google-btn{background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+body.light .player-card{background:#fff;box-shadow:0 -4px 24px rgba(74,108,247,.1);border-color:var(--surface3)}
+body.light #authGate{background:var(--bg)}
+body.light .logo,body.light .logo-big{background:linear-gradient(135deg,#4a6cf7,#00b8a9);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+body.light .ctrl-btn.play{background:linear-gradient(135deg,#4a6cf7,#6b8cff);box-shadow:0 4px 20px rgba(74,108,247,.3)}
+body.light .add-btn{background:linear-gradient(135deg,#4a6cf7,#6b8cff)}
+body.light .track-item.active{border-color:#4a6cf7;background:linear-gradient(135deg,rgba(74,108,247,.06),rgba(0,184,169,.03));box-shadow:0 4px 24px rgba(74,108,247,.1)}
+body.light .track-item.active .track-num{background:#4a6cf7}
+body.light .playlist-pill.active{background:#4a6cf7;border-color:#4a6cf7}
+body.light .modal-btn.danger{background:rgba(234,67,53,.12);color:#d93025}
+body.light .now-art{background:linear-gradient(135deg,#4a6cf7,#00b8a9)}
+body.light .progress-fill{background:linear-gradient(90deg,#4a6cf7,#00b8a9)}
+body.light .url-input:focus{border-color:rgba(74,108,247,.4)}
+
+::-webkit-scrollbar{width:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.track-item{animation:fadeUp .3s ease both}
+</style>
+</head>
+<body>
+
+<!-- Auth Gate (shown when not signed in) -->
+<div id="authGate">
+  <div class="logo-big">TokPlay</div>
+  <p class="tagline">Your TikTok audio playlist.<br>Paste a link, we handle the rest.</p>
+  <button class="google-btn" onclick="signInWithGoogle()">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+    Sign in with Google
+  </button>
+</div>
+
+<div id="app" style="display:none">
+  <div class="ambient" id="ambient"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">TokPlay v9</div>
+    <div class="header-actions">
+      <div class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark mode">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </div>
+      <div class="icon-btn" onclick="showHelpModal()" title="Help">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="icon-btn" onclick="confirmSignOut()" title="Sign out" id="signOutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- URL Input Bar -->
+  <div class="url-bar">
+    <input type="url" class="url-input" id="tiktokUrl" placeholder="Paste TikTok link..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="add-btn" id="addBtn" onclick="submitUrl()">Add</button>
+    <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('fileInput').click()" title="Upload audio file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </button>
+    <input type="file" id="fileInput" accept=".mp3,audio/mpeg" style="display:none" onchange="handleFileUpload(this)">
+    <button class="upload-btn" id="csvBtn" onclick="document.getElementById('csvInput').click()" title="Import links from CSV">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </button>
+    <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCsvUpload(this)">
+  </div>
+
+  <!-- Playlist Selector -->
+  <div class="playlist-selector" id="playlistSelector"></div>
+
+  <!-- Playlist -->
+  <div class="playlist-section">
+    <div class="playlist-header">
+      <div class="playlist-title" id="playlistTitle">All Tracks</div>
+      <span class="track-count" id="trackCount">0 tracks</span>
+      <button class="clear-btn" onclick="showClearModal()">Clear All</button>
+    </div>
+    <div class="tracks-list" id="tracksList"></div>
+  </div>
+
+  <!-- Player -->
+  <div class="now-playing">
+    <div class="player-card">
+      <div class="progress-row">
+        <span class="progress-time" id="currentTime">0:00</span>
+        <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-time" id="totalTime">0:00</span>
+      </div>
+      <div class="now-info">
+        <div class="now-art" id="nowArt">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="16" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          <div class="disc"></div>
+        </div>
+        <div class="now-meta">
+          <div class="now-title" id="nowTitle">No track selected</div>
+          <div class="now-status" id="nowStatus">Paste a link to begin</div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="ctrl-btn small" id="shuffleBtn" onclick="toggleShuffle()" title="Shuffle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+        </button>
+        <button class="ctrl-btn small" id="loopBtn" onclick="toggleLoop()" title="Loop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </button>
+        <button class="ctrl-btn" onclick="prevTrack()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 20L9 12l10-8v16z"/><rect x="5" y="4" width="2" height="16"/></svg></button>
+        <button class="ctrl-btn play" id="playBtn" onclick="togglePlay()"><svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><polygon points="6,3 20,12 6,21"/></svg></button>
+        <button class="ctrl-btn" onclick="nextTrack()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4l10 8-10 8V4z"/><rect x="17" y="4" width="2" height="16"/></svg></button>
+        <button class="ctrl-btn small" id="speedBtn" onclick="cycleSpeed()">
+          <span class="speed-label" id="speedLabel">1x</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Modal -->
+  <div class="modal-overlay" id="clearModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3>Clear Playlist?</h3>
+      <p style="color:var(--text2);font-size:14px;margin-bottom:20px">This removes all tracks from your library permanently.</p>
+      <button class="modal-btn danger" onclick="clearPlaylist()">Clear All Tracks</button>
+      <button class="modal-btn cancel" onclick="hideClearModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Sign Out Modal -->
+  <div class="modal-overlay" id="signOutModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3>Sign Out?</h3>
+      <p style="color:var(--text2);font-size:14px;margin-bottom:20px">Your library is saved in the cloud. Sign back in any time to access it.</p>
+      <button class="modal-btn danger" onclick="doSignOut()">Sign Out</button>
+      <button class="modal-btn cancel" onclick="hideSignOutModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3>How to Use TokPlay</h3>
+      <div class="help-section">
+        <h4><span class="step-num">1</span> Find a video</h4>
+        <p>Open TikTok, tap the share button on any video, then tap <strong>"Copy link"</strong>.</p>
+      </div>
+      <div class="help-section">
+        <h4><span class="step-num">2</span> Paste the link</h4>
+        <p>Paste the link into the input bar at the top and tap <strong>Add</strong>. TokPlay downloads and converts the audio automatically.</p>
+      </div>
+      <div class="help-section">
+        <h4><span class="step-num">3</span> Play &amp; enjoy</h4>
+        <p>Tap any track to play. Use controls to skip, shuffle, loop, or change speed. Your library is synced to the cloud — add from any device.</p>
+      </div>
+      <div class="help-section">
+        <h4><span class="step-num">+</span> Upload audio files</h4>
+        <p>Tap the <strong>upload icon</strong> (arrow) to upload MP3 files directly. Max 5 minutes, 10 MB.</p>
+      </div>
+      <div class="help-section">
+        <h4><span class="step-num">+</span> Batch import from CSV</h4>
+        <p>Tap the <strong>document icon</strong> to import a CSV or text file with TikTok links (one per line or comma-separated). All links will be queued automatically.</p>
+      </div>
+      <div class="help-divider"></div>
+      <div class="help-tip">
+        <strong>Processing takes ~30 seconds</strong> — the server downloads and converts the audio. The track will appear in your playlist automatically when done.
+      </div>
+      <button class="modal-btn cancel" onclick="hideHelpModal()" style="margin-top:16px">Got it!</button>
+    </div>
+  </div>
+
+  <!-- Create Playlist Modal -->
+  <div class="modal-overlay" id="createPlaylistModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3 id="createPlaylistModalTitle">New Playlist</h3>
+      <input type="text" class="url-input" id="playlistNameInput" placeholder="Playlist name..." maxlength="100" onkeydown="if(event.key==='Enter')submitCreatePlaylist()" style="margin-bottom:16px">
+      <button class="modal-btn" id="createPlaylistSubmitBtn" onclick="submitCreatePlaylist()" style="background:linear-gradient(135deg,var(--accent),#ff4470);color:white">Create</button>
+      <button class="modal-btn cancel" onclick="hideCreatePlaylistModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Add to Playlist Modal -->
+  <div class="modal-overlay" id="addToPlaylistModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3>Add to Playlist</h3>
+      <div id="addToPlaylistList" style="margin-bottom:16px"></div>
+      <button class="modal-btn cancel" onclick="hideAddToPlaylistModal()">Done</button>
+    </div>
+  </div>
+
+  <!-- Playlist Options Modal -->
+  <div class="modal-overlay" id="playlistOptionsModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3 id="playlistOptionsName"></h3>
+      <button class="modal-btn" onclick="startRenamePlaylist()" style="background:var(--surface2);color:var(--text)">Rename Playlist</button>
+      <button class="modal-btn danger" onclick="confirmDeletePlaylist()">Delete Playlist</button>
+      <button class="modal-btn cancel" onclick="hidePlaylistOptionsModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Delete Playlist Confirmation Modal -->
+  <div class="modal-overlay" id="deletePlaylistModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3>Delete Playlist?</h3>
+      <p style="color:var(--text2);font-size:14px;margin-bottom:20px">This only removes the playlist. Your tracks will remain in your library.</p>
+      <button class="modal-btn danger" onclick="doDeletePlaylist()">Delete Playlist</button>
+      <button class="modal-btn cancel" onclick="hideDeletePlaylistModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Processing Overlay -->
+  <div class="processing-overlay" id="processingOverlay">
+    <div class="spinner"></div>
+    <div class="processing-text" id="processingText">Adding track...</div>
+    <div class="processing-detail" id="processingDetail">Downloading audio via yt-dlp</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- Firebase SDKs (compat version for simplicity — no build step needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+
+<script>
+// ─── Firebase Config ───
+// TODO: Replace with your Firebase project config from the Firebase Console
+// (Project Settings → Your apps → Web app → SDK setup and configuration)
+// ⚠️  Replace with your own Firebase project config
+// (Firebase Console → Project Settings → Your apps → Web app → SDK setup)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
+  measurementId: "YOUR_MEASUREMENT_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const functions = firebase.functions();
+// Uncomment the line below to use the local emulator during development:
+// functions.useEmulator("localhost", 5001);
+
+// ─── State ───
+let tracks = [];          // only "ready" tracks (from Firestore onSnapshot)
+let allTrackDocs = [];    // all docs including "processing"/"error" (for display)
+let viewTracks = [];      // tracks visible in current view (all or filtered by playlist)
+let playlists = [];       // all playlist docs from Firestore
+let activePlaylistId = null; // null = "All Tracks", string = specific playlist
+let currentIndex = -1;
+let isPlaying = false;
+let shuffleOn = false;
+let loopOn = false;
+let playbackSpeed = 1;
+let currentUser = null;
+let unsubscribeLibrary = null;
+let unsubscribePlaylists = null;
+const SPEEDS = [1, 1.5, 2, 0.5];
+const audio = new Audio();
+
+function computeViewTracks() {
+  if (!activePlaylistId) { viewTracks = tracks; return; }
+  const playlist = playlists.find(p => p.id === activePlaylistId);
+  if (!playlist) { activePlaylistId = null; viewTracks = tracks; return; }
+  viewTracks = playlist.trackIds.map(id => tracks.find(t => t.id === id)).filter(Boolean);
+}
+
+// ─── Auth ───
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  if (user) {
+    document.getElementById('authGate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    subscribeToLibrary(user.uid);
+    subscribeToPlaylists(user.uid);
+  } else {
+    document.getElementById('authGate').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    if (unsubscribeLibrary) { unsubscribeLibrary(); unsubscribeLibrary = null; }
+    if (unsubscribePlaylists) { unsubscribePlaylists(); unsubscribePlaylists = null; }
+    tracks = []; allTrackDocs = []; viewTracks = []; playlists = [];
+    activePlaylistId = null; currentIndex = -1;
+    renderTracks();
+  }
+});
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => showToast(err.message || 'Sign-in failed', 'error'));
+}
+
+function confirmSignOut() { document.getElementById('signOutModal').classList.add('show') }
+function hideSignOutModal() { document.getElementById('signOutModal').classList.remove('show') }
+function doSignOut() {
+  audio.pause(); isPlaying = false; updatePlayBtn();
+  auth.signOut();
+  hideSignOutModal();
+}
+
+// ─── Firestore Library ───
+function subscribeToLibrary(uid) {
+  if (unsubscribeLibrary) unsubscribeLibrary();
+  unsubscribeLibrary = db.collection('users').doc(uid).collection('tracks')
+    .orderBy('ordinal', 'asc')
+    .onSnapshot(snapshot => {
+      allTrackDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      tracks = allTrackDocs.filter(t => t.status === 'ready');
+      computeViewTracks();
+      if (currentIndex >= viewTracks.length) {
+        currentIndex = viewTracks.length > 0 ? viewTracks.length - 1 : -1;
+      }
+      renderTracks();
+    }, err => {
+      console.error('Library sync error:', err);
+      showToast('Library sync error', 'error');
+    });
+}
+
+function subscribeToPlaylists(uid) {
+  if (unsubscribePlaylists) unsubscribePlaylists();
+  unsubscribePlaylists = db.collection('users').doc(uid).collection('playlists')
+    .orderBy('createdAt', 'asc')
+    .onSnapshot(snapshot => {
+      playlists = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      computeViewTracks();
+      renderPlaylistSelector();
+      renderTracks();
+    }, err => {
+      console.error('Playlists sync error:', err);
+    });
+}
+
+// ─── Upload Queue ───
+const uploadQueue = [];
+let uploadRunning = false;
+
+function submitUrl() {
+  const input = document.getElementById('tiktokUrl');
+  const url = input.value.trim();
+  if (!url) return;
+  if (!currentUser) { showToast('Please sign in first', 'error'); return; }
+  input.value = '';
+  uploadQueue.push(url);
+  updateQueueBadge();
+  showToast(`Queued (${uploadQueue.length} pending)`, 'success');
+  processQueue();
+}
+
+async function processQueue() {
+  if (uploadRunning || !uploadQueue.length) return;
+  uploadRunning = true;
+  updateQueueBadge();
+
+  while (uploadQueue.length) {
+    const url = uploadQueue.shift();
+    updateQueueBadge();
+    try {
+      const fn = functions.httpsCallable('processTrackFn');
+      const result = await fn({ tiktokUrl: url });
+      if (result.data.status === 'duplicate') {
+        showToast('Already in your library', 'success');
+      } else {
+        showToast('Track added!', 'success');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to process track', 'error');
+    }
+  }
+
+  uploadRunning = false;
+  updateQueueBadge();
+}
+
+function updateQueueBadge() {
+  const btn = document.getElementById('addBtn');
+  const pending = uploadQueue.length + (uploadRunning ? 1 : 0);
+  btn.textContent = pending > 0 ? `Add (${pending})` : 'Add';
+}
+
+// Allow pressing Enter in the URL input
+document.getElementById('tiktokUrl').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitUrl();
+});
+
+// ─── File Upload ───
+async function handleFileUpload(input) {
+  const file = input.files[0];
+  input.value = ''; // reset so same file can be re-selected
+  if (!file) return;
+  if (!currentUser) { showToast('Please sign in first', 'error'); return; }
+
+  // MP3 only
+  if (!file.name.toLowerCase().endsWith('.mp3')) {
+    showToast('Only MP3 files are supported', 'error');
+    return;
+  }
+
+  // 10MB limit (callable function body limit, ~5 min at 320kbps)
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('File too large (max 10 MB)', 'error');
+    return;
+  }
+
+  showToast('Uploading ' + file.name + '...', 'success');
+
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        // result is "data:audio/mpeg;base64,XXXXX" — strip the prefix
+        const dataUrl = reader.result;
+        const base64Data = dataUrl.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const fn = functions.httpsCallable('uploadTrackFn');
+    await fn({ audioBase64: base64, fileName: file.name });
+    showToast('Track added!', 'success');
+  } catch (err) {
+    showToast(err.message || 'Upload failed', 'error');
+  }
+}
+
+// ─── CSV Batch Import ───
+function handleCsvUpload(input) {
+  const file = input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!currentUser) { showToast('Please sign in first', 'error'); return; }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = reader.result;
+    // Extract all URLs from the CSV (handles commas, newlines, quotes)
+    const urls = text.split(/[\r\n,]+/)
+      .map(s => s.replace(/^["'\s]+|["'\s]+$/g, '').trim())
+      .filter(s => s.startsWith('http'));
+
+    if (!urls.length) {
+      showToast('No links found in file', 'error');
+      return;
+    }
+
+    for (const url of urls) {
+      uploadQueue.push(url);
+    }
+    updateQueueBadge();
+    showToast(`Queued ${urls.length} link${urls.length !== 1 ? 's' : ''}`, 'success');
+    processQueue();
+  };
+  reader.onerror = () => showToast('Failed to read file', 'error');
+  reader.readAsText(file);
+}
+
+// ─── Volume Normalization ───
+function recalcVolumes() {
+  if (!viewTracks.length) return;
+  const minRMS = Math.min(...viewTracks.map(t => t.rms || 0.001));
+  for (const t of viewTracks) {
+    const ratio = minRMS / (t.rms || 0.001);
+    t.vol = Math.max(0.05, Math.min(ratio, 1.0));
+  }
+}
+
+function applyGain(track) {
+  audio.volume = track.vol != null ? track.vol : 1;
+}
+
+// ─── Render ───
+function renderPlaylistSelector() {
+  const c = document.getElementById('playlistSelector');
+  let h = `<button class="playlist-pill ${!activePlaylistId ? 'active' : ''}" onclick="switchToPlaylist(null)">All Tracks</button>`;
+  for (const p of playlists) {
+    h += `<button class="playlist-pill ${activePlaylistId === p.id ? 'active' : ''}" onclick="switchToPlaylist('${p.id}')" oncontextmenu="showPlaylistOptionsModal('${p.id}',event)">${esc(p.name)}</button>`;
+  }
+  h += `<button class="playlist-pill add-pill" onclick="showCreatePlaylistModal()">+</button>`;
+  c.innerHTML = h;
+}
+
+function renderPlaylistHeader() {
+  const titleEl = document.getElementById('playlistTitle');
+  const clearBtn = document.querySelector('.clear-btn');
+  if (activePlaylistId) {
+    const pl = playlists.find(p => p.id === activePlaylistId);
+    titleEl.textContent = pl ? pl.name : 'Playlist';
+    clearBtn.textContent = 'Delete Playlist';
+    clearBtn.onclick = () => showDeletePlaylistModal(activePlaylistId);
+  } else {
+    titleEl.textContent = 'All Tracks';
+    clearBtn.textContent = 'Clear All';
+    clearBtn.onclick = () => showClearModal();
+  }
+}
+
+function renderTracks() {
+  const list = document.getElementById('tracksList');
+  computeViewTracks();
+  document.getElementById('trackCount').textContent = `${viewTracks.length} track${viewTracks.length !== 1 ? 's' : ''}`;
+  renderPlaylistHeader();
+
+  const displayDocs = activePlaylistId ? viewTracks : allTrackDocs;
+
+  if (!displayDocs.length) {
+    const emptyMsg = activePlaylistId
+      ? 'This playlist is empty.<br><span class="hint">Add tracks from the "All Tracks" view.</span>'
+      : 'Paste a TikTok link or upload an audio file to get started<br><span class="hint">Tap the <strong>?</strong> icon for instructions</span>';
+    list.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+      <p>${emptyMsg}</p></div>`;
+    return;
+  }
+
+  list.innerHTML = displayDocs.map((doc, di) => {
+    const viewIndex = viewTracks.findIndex(t => t.id === doc.id);
+    const isActive = viewIndex !== -1 && viewIndex === currentIndex;
+    const isProcessing = doc.status === 'processing';
+    const isError = doc.status === 'error';
+    const isReady = doc.status === 'ready';
+
+    let badge = '';
+    if (isProcessing) badge = '<span class="processing-badge">processing…</span>';
+    if (isError) badge = `<span class="error-badge" title="${esc(doc.errorMessage || 'Error')}">error</span>`;
+
+    const numLabel = isActive ? '▶' : (viewIndex >= 0 ? viewIndex + 1 : '·');
+    const dur = doc.durationSeconds ? fmt(doc.durationSeconds) : '—';
+
+    let actions = '';
+    if (activePlaylistId && isReady) {
+      actions = `<button class="track-btn" onclick="removeTrackFromPlaylist('${activePlaylistId}','${doc.id}');event.stopPropagation()" title="Remove from playlist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>`;
+    } else if (!activePlaylistId) {
+      if (isReady) {
+        actions += `<button class="track-btn" onclick="showAddToPlaylistModal('${doc.id}',event)" title="Add to playlist">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>`;
+        actions += `<button class="track-btn" onclick="editName('${doc.id}',${viewIndex},event)" title="Rename">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>`;
+      }
+      actions += `<button class="track-btn delete" onclick="deleteTrack('${doc.id}',event)" title="Delete">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>`;
+    }
+
+    return `
+    <div class="track-item ${isActive ? 'active' : ''} ${isProcessing ? 'processing-track' : ''}"
+         onclick="${viewIndex >= 0 ? `loadTrack(${viewIndex},true)` : ''}"
+         style="animation-delay:${di * .04}s">
+      <div class="track-num">${numLabel}</div>
+      <div class="track-info">
+        <div class="track-name" id="tn-${doc.id}">${esc(doc.name || doc.videoId || '…')}${badge}</div>
+        <div class="track-duration">${dur}</div>
+      </div>
+      <div class="track-actions">${actions}</div>
+    </div>`;
+  }).join('');
+
+  recalcVolumes();
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+// ─── Playback ───
+function loadTrack(index, autoplay) {
+  if (index < 0 || index >= viewTracks.length) return;
+  currentIndex = index;
+  const track = viewTracks[index];
+  audio.src = track.downloadUrl;
+  audio.playbackRate = playbackSpeed;
+  audio.load();
+  applyGain(track);
+  document.getElementById('nowTitle').textContent = track.name;
+  const plName = activePlaylistId ? (playlists.find(p => p.id === activePlaylistId)?.name || '') : '';
+  document.getElementById('nowStatus').textContent = `Track ${index + 1} of ${viewTracks.length}${plName ? ' · ' + plName : ''}${shuffleOn ? ' · Shuffle' : ''}${loopOn ? ' · Loop' : ''}`;
+  renderTracks();
+  if (autoplay) audio.play().then(() => { isPlaying = true; updatePlayBtn() }).catch(() => {});
+}
+
+function togglePlay() {
+  if (!viewTracks.length) return;
+  if (currentIndex === -1) { loadTrack(0, true); return; }
+  if (isPlaying) { audio.pause(); isPlaying = false; }
+  else audio.play().then(() => { isPlaying = true }).catch(() => {});
+  updatePlayBtn();
+}
+
+function updatePlayBtn() {
+  const icon = document.getElementById('playIcon');
+  const art = document.getElementById('nowArt');
+  const amb = document.getElementById('ambient');
+  if (isPlaying) {
+    icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+    art.classList.add('spinning'); amb.classList.add('playing');
+  } else {
+    icon.innerHTML = '<polygon points="6,3 20,12 6,21"/>';
+    art.classList.remove('spinning'); amb.classList.remove('playing');
+  }
+}
+
+function getNextIndex() {
+  if (shuffleOn && viewTracks.length > 1) {
+    let r; do { r = Math.floor(Math.random() * viewTracks.length) } while (r === currentIndex);
+    return r;
+  }
+  return (currentIndex + 1) % viewTracks.length;
+}
+
+function nextTrack() { if (viewTracks.length) loadTrack(getNextIndex(), true) }
+function prevTrack() {
+  if (!viewTracks.length) return;
+  if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+  loadTrack((currentIndex - 1 + viewTracks.length) % viewTracks.length, true);
+}
+
+audio.addEventListener('ended', () => {
+  if (loopOn) { audio.currentTime = 0; audio.play().catch(() => {}); return; }
+  nextTrack();
+});
+audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn() });
+audio.addEventListener('play', () => {
+  isPlaying = true; updatePlayBtn();
+  if ('mediaSession' in navigator && viewTracks[currentIndex])
+    navigator.mediaSession.metadata = new MediaMetadata({ title: viewTracks[currentIndex].name, artist: 'TokPlay', album: 'TikTok Audio' });
+});
+
+audio.addEventListener('timeupdate', () => {
+  const track = viewTracks[currentIndex];
+  if (!track || !audio.duration) return;
+  const dur = track.durationSeconds || audio.duration;
+  const pct = Math.min((audio.currentTime / dur) * 100, 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('currentTime').textContent = fmt(audio.currentTime);
+  document.getElementById('totalTime').textContent = fmt(dur);
+  // Soft trim: if audio exceeds trimmed duration, skip to next
+  if (audio.currentTime >= dur) {
+    if (loopOn) { audio.currentTime = 0; return; }
+    nextTrack();
+  }
+});
+
+document.getElementById('progressBar').addEventListener('click', e => {
+  const track = viewTracks[currentIndex];
+  if (!track || !audio.duration) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - r.left) / r.width) * (track.durationSeconds || audio.duration);
+});
+
+// ─── Shuffle / Loop / Speed ───
+function toggleShuffle() {
+  shuffleOn = !shuffleOn;
+  document.getElementById('shuffleBtn').classList.toggle('active', shuffleOn);
+  showToast(shuffleOn ? 'Shuffle on' : 'Shuffle off', 'success');
+  if (viewTracks[currentIndex]) document.getElementById('nowStatus').textContent = `Track ${currentIndex + 1} of ${viewTracks.length}${shuffleOn ? ' · Shuffle' : ''}${loopOn ? ' · Loop' : ''}`;
+}
+
+function toggleLoop() {
+  loopOn = !loopOn;
+  document.getElementById('loopBtn').classList.toggle('active', loopOn);
+  showToast(loopOn ? 'Loop on' : 'Loop off', 'success');
+  if (viewTracks[currentIndex]) document.getElementById('nowStatus').textContent = `Track ${currentIndex + 1} of ${viewTracks.length}${shuffleOn ? ' · Shuffle' : ''}${loopOn ? ' · Loop' : ''}`;
+}
+
+function cycleSpeed() {
+  const idx = (SPEEDS.indexOf(playbackSpeed) + 1) % SPEEDS.length;
+  playbackSpeed = SPEEDS[idx];
+  audio.playbackRate = playbackSpeed;
+  document.getElementById('speedLabel').textContent = playbackSpeed + 'x';
+  document.getElementById('speedBtn').classList.toggle('active', playbackSpeed !== 1);
+  showToast(`Speed: ${playbackSpeed}x`, 'success');
+}
+
+// ─── Track Management ───
+function editName(docId, readyIndex, e) {
+  e.stopPropagation();
+  const el = document.getElementById(`tn-${docId}`);
+  const currentName = viewTracks[readyIndex]?.name || '';
+  el.innerHTML = `<input class="track-name-input" value="${esc(currentName)}" onblur="saveName('${docId}',this)" onkeydown="if(event.key==='Enter')this.blur()" autofocus>`;
+  el.querySelector('input').focus();
+  el.querySelector('input').select();
+}
+
+function saveName(docId, input) {
+  const newName = input.value.trim();
+  if (!newName || !currentUser) return;
+  db.collection('users').doc(currentUser.uid).collection('tracks').doc(docId)
+    .update({ name: newName })
+    .catch(err => showToast('Rename failed: ' + err.message, 'error'));
+  // Update local state immediately for responsiveness
+  const t = viewTracks.find(t => t.id === docId);
+  if (t) {
+    t.name = newName;
+    if (viewTracks.indexOf(t) === currentIndex) document.getElementById('nowTitle').textContent = newName;
+  }
+  renderTracks();
+}
+
+async function deleteTrack(docId, e) {
+  e.stopPropagation();
+  if (!currentUser) return;
+  const viewIndex = viewTracks.findIndex(t => t.id === docId);
+  const wasPlaying = isPlaying && viewIndex === currentIndex;
+  if (viewIndex === currentIndex) { audio.pause(); isPlaying = false; updatePlayBtn(); }
+
+  try {
+    const fn = functions.httpsCallable('deleteTrackFn');
+    await fn({ trackId: docId });
+    // Clean up: remove from all playlists that reference this track
+    for (const p of playlists) {
+      if (p.trackIds && p.trackIds.includes(docId)) {
+        db.collection('users').doc(currentUser.uid).collection('playlists').doc(p.id)
+          .update({ trackIds: firebase.firestore.FieldValue.arrayRemove(docId), updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+          .catch(() => {});
+      }
+    }
+    if (wasPlaying || viewIndex === currentIndex) {
+      document.getElementById('nowTitle').textContent = 'No track selected';
+      document.getElementById('nowStatus').textContent = 'Paste a link to begin';
+      document.getElementById('progressFill').style.width = '0%';
+    }
+  } catch (err) {
+    showToast('Delete failed: ' + (err.message || 'Unknown error'), 'error');
+  }
+}
+
+function showClearModal() { if (allTrackDocs.length) document.getElementById('clearModal').classList.add('show') }
+function hideClearModal() { document.getElementById('clearModal').classList.remove('show') }
+
+async function clearPlaylist() {
+  if (!currentUser) return;
+  audio.pause(); audio.src = ''; isPlaying = false;
+  currentIndex = -1;
+  document.getElementById('nowTitle').textContent = 'No track selected';
+  document.getElementById('nowStatus').textContent = 'Paste a link to begin';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('currentTime').textContent = '0:00';
+  document.getElementById('totalTime').textContent = '0:00';
+  updatePlayBtn();
+  hideClearModal();
+
+  // Delete all tracks via the deleteTrack function (handles Storage cleanup)
+  const ids = allTrackDocs.map(t => t.id);
+  const fn = functions.httpsCallable('deleteTrackFn');
+  showToast('Clearing library...', 'success');
+  for (const id of ids) {
+    await fn({ trackId: id }).catch(() => {});
+  }
+  // Also delete all playlists
+  for (const p of playlists) {
+    db.collection('users').doc(currentUser.uid).collection('playlists').doc(p.id).delete().catch(() => {});
+  }
+  activePlaylistId = null;
+  showToast('Library cleared', 'success');
+}
+
+// ─── Modals ───
+function showHelpModal() { document.getElementById('helpModal').classList.add('show') }
+function hideHelpModal() { document.getElementById('helpModal').classList.remove('show') }
+
+document.getElementById('clearModal').addEventListener('click', e => { if (e.target === e.currentTarget) hideClearModal() });
+document.getElementById('helpModal').addEventListener('click', e => { if (e.target === e.currentTarget) hideHelpModal() });
+document.getElementById('signOutModal').addEventListener('click', e => { if (e.target === e.currentTarget) hideSignOutModal() });
+document.getElementById('createPlaylistModal').addEventListener('click', e => { if (e.target === e.currentTarget) hideCreatePlaylistModal() });
+document.getElementById('addToPlaylistModal').addEventListener('click', e => { if (e.target === e.currentTarget) hideAddToPlaylistModal() });
+document.getElementById('playlistOptionsModal').addEventListener('click', e => { if (e.target === e.currentTarget) hidePlaylistOptionsModal() });
+document.getElementById('deletePlaylistModal').addEventListener('click', e => { if (e.target === e.currentTarget) hideDeletePlaylistModal() });
+
+// ─── Toast ───
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = 'toast', 2500);
+}
+
+// ─── Processing Overlay ───
+function showProc(msg, detail = '') {
+  document.getElementById('processingOverlay').classList.add('show');
+  document.getElementById('processingText').textContent = msg;
+  document.getElementById('processingDetail').textContent = detail;
+}
+function hideProc() { document.getElementById('processingOverlay').classList.remove('show') }
+
+// ─── Media Session ───
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.setActionHandler('play', () => togglePlay());
+  navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+  navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+  navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+  navigator.mediaSession.setActionHandler('seekto', d => { if (d.seekTime != null) audio.currentTime = d.seekTime });
+}
+
+function fmt(s) { if (!s || isNaN(s)) return '0:00'; return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}` }
+
+// ─── Playlist Management ───
+function switchToPlaylist(playlistId) {
+  activePlaylistId = playlistId;
+  audio.pause(); isPlaying = false; currentIndex = -1;
+  updatePlayBtn();
+  document.getElementById('nowTitle').textContent = 'No track selected';
+  document.getElementById('nowStatus').textContent = activePlaylistId ? 'Viewing playlist' : 'Paste a link to begin';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('currentTime').textContent = '0:00';
+  document.getElementById('totalTime').textContent = '0:00';
+  computeViewTracks();
+  renderPlaylistSelector();
+  renderTracks();
+}
+
+async function createPlaylist(name) {
+  if (!currentUser || !name.trim()) return;
+  await db.collection('users').doc(currentUser.uid).collection('playlists').add({
+    name: name.trim(), trackIds: [],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  showToast('Playlist created', 'success');
+}
+
+async function deletePlaylist(playlistId) {
+  if (!currentUser) return;
+  if (activePlaylistId === playlistId) { activePlaylistId = null; computeViewTracks(); }
+  await db.collection('users').doc(currentUser.uid).collection('playlists').doc(playlistId).delete();
+  renderPlaylistSelector(); renderTracks();
+  showToast('Playlist deleted', 'success');
+}
+
+async function renamePlaylist(playlistId, newName) {
+  if (!currentUser || !newName.trim()) return;
+  await db.collection('users').doc(currentUser.uid).collection('playlists').doc(playlistId).update({
+    name: newName.trim(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+async function addTrackToPlaylist(playlistId, trackId) {
+  if (!currentUser) return;
+  await db.collection('users').doc(currentUser.uid).collection('playlists').doc(playlistId).update({
+    trackIds: firebase.firestore.FieldValue.arrayUnion(trackId),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+async function removeTrackFromPlaylist(playlistId, trackId) {
+  if (!currentUser) return;
+  await db.collection('users').doc(currentUser.uid).collection('playlists').doc(playlistId).update({
+    trackIds: firebase.firestore.FieldValue.arrayRemove(trackId),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  showToast('Removed from playlist', 'success');
+}
+
+// ─── Playlist Modals ───
+function showCreatePlaylistModal() {
+  document.getElementById('createPlaylistModalTitle').textContent = 'New Playlist';
+  document.getElementById('createPlaylistSubmitBtn').onclick = submitCreatePlaylist;
+  document.getElementById('createPlaylistModal').classList.add('show');
+  setTimeout(() => document.getElementById('playlistNameInput').focus(), 100);
+}
+function hideCreatePlaylistModal() {
+  document.getElementById('createPlaylistModal').classList.remove('show');
+  document.getElementById('playlistNameInput').value = '';
+  document.getElementById('createPlaylistModalTitle').textContent = 'New Playlist';
+  document.getElementById('createPlaylistSubmitBtn').onclick = submitCreatePlaylist;
+}
+function submitCreatePlaylist() {
+  const input = document.getElementById('playlistNameInput');
+  const name = input.value.trim();
+  if (!name) return;
+  createPlaylist(name);
+  hideCreatePlaylistModal();
+}
+
+function showAddToPlaylistModal(trackId, event) {
+  event.stopPropagation();
+  const modal = document.getElementById('addToPlaylistModal');
+  const list = document.getElementById('addToPlaylistList');
+  if (!playlists.length) {
+    list.innerHTML = '<p style="color:var(--text3);font-size:14px;padding:12px 0">No playlists yet. Create one first.</p>';
+  } else {
+    list.innerHTML = playlists.map(p => {
+      const checked = p.trackIds && p.trackIds.includes(trackId);
+      return `<label class="playlist-check-item">
+        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTrackInPlaylist('${p.id}','${trackId}',this.checked)">
+        <span>${esc(p.name)}</span>
+      </label>`;
+    }).join('');
+  }
+  modal.classList.add('show');
+}
+function hideAddToPlaylistModal() { document.getElementById('addToPlaylistModal').classList.remove('show') }
+
+async function toggleTrackInPlaylist(playlistId, trackId, shouldAdd) {
+  if (shouldAdd) await addTrackToPlaylist(playlistId, trackId);
+  else await removeTrackFromPlaylist(playlistId, trackId);
+}
+
+function showPlaylistOptionsModal(playlistId, event) {
+  event.preventDefault(); event.stopPropagation();
+  const modal = document.getElementById('playlistOptionsModal');
+  modal.dataset.playlistId = playlistId;
+  const pl = playlists.find(p => p.id === playlistId);
+  document.getElementById('playlistOptionsName').textContent = pl ? pl.name : '';
+  modal.classList.add('show');
+}
+function hidePlaylistOptionsModal() { document.getElementById('playlistOptionsModal').classList.remove('show') }
+
+function startRenamePlaylist() {
+  const playlistId = document.getElementById('playlistOptionsModal').dataset.playlistId;
+  const pl = playlists.find(p => p.id === playlistId);
+  hidePlaylistOptionsModal();
+  const input = document.getElementById('playlistNameInput');
+  input.value = pl ? pl.name : '';
+  document.getElementById('createPlaylistModalTitle').textContent = 'Rename Playlist';
+  document.getElementById('createPlaylistSubmitBtn').onclick = () => {
+    const newName = input.value.trim();
+    if (newName) { renamePlaylist(playlistId, newName); hideCreatePlaylistModal(); }
+  };
+  document.getElementById('createPlaylistModal').classList.add('show');
+  setTimeout(() => { input.focus(); input.select(); }, 100);
+}
+
+function confirmDeletePlaylist() {
+  const playlistId = document.getElementById('playlistOptionsModal').dataset.playlistId;
+  hidePlaylistOptionsModal();
+  showDeletePlaylistModal(playlistId);
+}
+
+function showDeletePlaylistModal(playlistId) {
+  const modal = document.getElementById('deletePlaylistModal');
+  modal.dataset.playlistId = playlistId;
+  modal.classList.add('show');
+}
+function hideDeletePlaylistModal() { document.getElementById('deletePlaylistModal').classList.remove('show') }
+function doDeletePlaylist() {
+  const playlistId = document.getElementById('deletePlaylistModal').dataset.playlistId;
+  deletePlaylist(playlistId);
+  hideDeletePlaylistModal();
+}
+
+// ─── Light / Dark Theme ───
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('tokplay-theme', isLight ? 'light' : 'dark');
+  updateThemeIcon(isLight);
+}
+function updateThemeIcon(isLight) {
+  document.getElementById('themeIcon').innerHTML = isLight
+    ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'  // moon
+    : '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';  // sun
+}
+// Restore saved theme
+(function() {
+  if (localStorage.getItem('tokplay-theme') === 'light') {
+    document.body.classList.add('light');
+    updateThemeIcon(true);
+  }
+})();
+
+</script>
+</body>
+</html>
