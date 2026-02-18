@@ -3,13 +3,13 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDwJ9cVPfhr90RBRtXnfz21Ms3nD5yIP3s",
-  authDomain: "tokplayv9.firebaseapp.com",
-  projectId: "tokplayv9",
-  storageBucket: "tokplayv9.firebasestorage.app",
-  messagingSenderId: "801686020791",
-  appId: "1:801686020791:web:992d781d55b75b62fba332",
-  measurementId: "G-F04H2GNE54"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
