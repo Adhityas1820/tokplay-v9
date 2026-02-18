@@ -23,13 +23,18 @@
     }
   ],
   "hosting": {
-    "public": "public",
+    "public": "client/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
+    "predeploy": ["npm --prefix client run build"],
     "rewrites": [
+      {
+        "source": "/api/**",
+        "function": "apiFn"
+      },
       {
         "source": "**",
         "destination": "/index.html"
